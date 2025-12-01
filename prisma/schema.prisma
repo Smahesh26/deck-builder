@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // For traditional login
+  image         String?   // Profile picture
+  emailVerified DateTime? // Email verification
+  
+  // OAuth accounts
+  accounts      Account[]
+  sessions      Session[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  projects      Project[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Project {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Business data
+  companyName     String
+  website         String?
+  tagline         String?
+  logo            String?   // URL to logo
+  
+  // Brand colors
+  primaryColor    String?
+  secondaryColor  String?
+  colorPalette    String[]  // Array of hex colors
+  
+  // Fonts
+  primaryFont     String?
+  fonts           String[]
+  
+  // Products
+  products        Product[]
+  
+  // Template & generation
+  templateId      String?
+  generatedDeckUrl String?  // URL to generated document
+  
+  status          String    @default("draft") // draft, processing, completed
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  skuCode     String?
+  imageUrl    String
+  category    String?
+  price       Float?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([projectId])
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   // business, tech, creative, minimal
+  previewUrl  String   // URL to preview image
+  config      Json     // Template configuration
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}

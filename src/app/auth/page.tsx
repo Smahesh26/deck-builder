@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import LoginForm from '../src/components/LoginForm';
+import LoginForm from '../../components/LoginForm';
 
-export default function HomePage() {
+export default function AuthPage() {
   const [isLoginMode, setIsLoginMode] = useState(true);
 
   const toggleMode = () => {
