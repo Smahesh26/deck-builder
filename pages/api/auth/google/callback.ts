@@ -25,19 +25,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }),
   });
 
-  // Fix: Explicitly type tokenData
-  const tokenData: { access_token?: string } = await tokenRes.json();
-  const accessToken = tokenData.access_token;
-
-  if (!accessToken) {
+  // Fix: Handle possible error response from token endpoint
+  const tokenData: any = await tokenRes.json();
+  if (!tokenRes.ok || !tokenData.access_token) {
     return res.status(401).send("Failed to get access token");
   }
+  const accessToken: string = tokenData.access_token;
 
   // Fetch user info
   const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  const user = await userRes.json();
+  const user: any = await userRes.json();
 
   // Set cookie with email (for demo; use secure session in production)
   res.setHeader(
