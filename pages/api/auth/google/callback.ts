@@ -24,7 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       grant_type: "authorization_code",
     }),
   });
-  const tokenData = await tokenRes.json();
+
+  // Fix: Explicitly type tokenData
+  const tokenData: { access_token?: string } = await tokenRes.json();
   const accessToken = tokenData.access_token;
 
   if (!accessToken) {
